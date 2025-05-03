@@ -244,9 +244,9 @@ Es importante aclarar que este espectrograma con CWT es una herramienta para pod
     plt.tight_layout()
     plt.show()
 ```
-![Transf-Wavelet](https://github.com/user-attachments/assets/9d207344-0e3f-4242-9d76-36358b2f7e0d) 
+![Transf-Wavelet](https://github.com/user-attachments/assets/9d207344-0e3f-4242-9d76-36358b2f7e0d)   
  |*Fig 8 : Resultados --> Transformada de Wavelet.*|          
-  👆 **Analisis** 👆     
+  👆 **Analisis** 👆       
  La imagen corresponde al análisis espectral de los intervalos R-R mediante la transformada wavelet continua (CWT), específicamente utilizando la wavelet de Morlet. Este gráfico, muestra un espectrograma en el que se observa la evolución temporal de la actividad en distintas bandas de frecuencia, permitiendo visualizar cómo varía la potencia de la señal de los intervalos R-R a lo largo del tiempo. 
 - En el eje horizontal se representa el tiempo en segundos, mientras que el eje vertical indica la frecuencia en hertz (Hz), con un límite superior de 0.5 Hz, abarcando así las bandas clásicas del análisis de la variabilidad de la frecuencia cardíaca (HRV): la banda de baja frecuencia (LF), entre 0.04 y 0.15 Hz, relacionada con la actividad simpática y parasimpática, y la banda de alta frecuencia (HF), entre 0.15 y 0.4 Hz, asociada principalmente con la modulación parasimpática.  
 
@@ -279,8 +279,8 @@ else:
 # ----------------------------
 print("\nIntervalos R-R (s):", rr_intervals)
 ```
-![WhatsApp Image 2025-05-02 at 11 45 34 AM](https://github.com/user-attachments/assets/bf2e2da0-e3d9-45ef-b141-e20d239368a5)  
- |*Fig 9 : Análisis de Frecuencias de HRV (Estimación con CWT).*|        
+![WhatsApp Image 2025-05-02 at 11 45 34 AM](https://github.com/user-attachments/assets/bf2e2da0-e3d9-45ef-b141-e20d239368a5)    
+ |*Fig 9 : Análisis de Frecuencias de HRV (Estimación con CWT).*|          
 A partir del espectrograma de los intervalos R-R y el análisis de frecuencias de la variabilidad de la frecuencia cardíaca (HRV) usando la transformada wavelet, se puede decir lo siguiente: Aunque en el espectrograma se nota bastante actividad en la zona de alta frecuencia (HF), los valores calculados muestran que la potencia en la banda de baja frecuencia (LF) es un poco mayor (1.3930) que la de alta frecuencia (0.9205). Esto da un cociente LF/HF de 1.51. Ese valor indica que hay un leve predominio del sistema nervioso simpático (que activa el cuerpo), aunque también hay una buena participación del sistema parasimpático (que relaja el cuerpo). En resumen, el control del corazón está equilibrado, pero con una ligera inclinación hacia la activación.  
 _________________________________    
 
