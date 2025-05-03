@@ -284,5 +284,24 @@ _________________________________
 
 ## CONCLUSIONES: ⚙️     
 Al finalizar la práctica, se puede concluir que el análisis en el dominio del tiempo, representado por el gráfico de intervalos R-R, permite observar de forma directa la variabilidad entre los latidos del corazón, evidenciando fluctuaciones y posibles irregularidades en los intervalos. Sin embargo, este tipo de análisis no proporciona información sobre cómo varía la frecuencia de estos cambios a lo largo del tiempo. En contraste, el análisis en el dominio tiempo-frecuencia, como el espectrograma generado mediante la Transformada Wavelet Continua (CWT), permite visualizar no solo las frecuencias presentes en la señal, sino también cómo estas evolucionan con el tiempo, revelando patrones oscilatorios que no son evidentes en el dominio únicamente temporal. La elección de la función wavelet influye directamente en la resolución y en la capacidad de detección de ciertos patrones: algunas funciones pueden resaltar mejor las frecuencias bajas o altas, o detectar cambios bruscos, lo que puede modificar ligeramente la interpretación de los resultados, aunque en este caso se utilizó la wavelet de Morlet, que ofrece un buen balance entre resolución temporal y frecuencial. En cuanto a las aplicaciones reales, esta práctica es fundamental para el análisis de la variabilidad de la frecuencia cardíaca (HRV), la cual es una herramienta clínica y de investigación útil en la evaluación del sistema nervioso autónomo, el estrés, la fatiga, y la recuperación en el deporte, así como en el monitoreo de pacientes con enfermedades cardíacas o trastornos del sueño.  
+
+___________________________________       
+
+## Licencia 
+Open Data Commons Attribution License v1.0
+
+## Temas:
+# 📡 Procesamiento de Señales  
+- Adquisición de la señal ECG en tiempo real durante periodo de tiempo.  
+- Aplicación de filtros IIR y Butterworth para eliminar ruido e interferencias no deseadas.    
+
+# 🔊 Análisis en Frecuencia  
+- Aplicación de la Transformada de Wavelet.
+- Cálculo de la frecuencia media y mediana para evaluar la evolución de la fatiga muscular.  
+
+# 🖥️ Código e Implementación  
+- Explicación del código utilizado para la adquisición, filtrado y análisis de la señal ECG.
+- Implementación de gráficos para visualizar la evolución de la frecuencia en el tiempo y la distribución de todo.
+- Mejoras en la optimización del código, asegurando una correcta segmentación de los datos y reduciendo errores en el análisis estadístico.
  
 
