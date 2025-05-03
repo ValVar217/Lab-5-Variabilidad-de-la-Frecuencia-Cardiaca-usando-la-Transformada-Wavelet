@@ -10,7 +10,14 @@ Mediante el desarrollo del presente informe, se presenta la realización de la p
 
 <h1 align="center"> 📄 GUIA DE USUARIO 📄 </h1>   
 
-## ✔️ANALISIS Y RESULTADOS           
+## ✔️ANALISIS Y RESULTADOS  
+
+## a. Fundamento teórico:
+**🧠 Sistema Nervioso Autónomo (SNA):** El SNA regula funciones automáticas del cuerpo, como la frecuencia cardíaca, la respiración y la digestión. Se divide en:  
+- Simpático: activa el cuerpo ante el estrés (acelera el corazón).  
+- Parasimpático: promueve el descanso y la recuperación (ralentiza el corazón).  
+- El equilibrio entre ambos se refleja en la variabilidad de la frecuencia cardíaca.  
+
 En esta primera parte del código se realiza la carga e inicialización de los datos de la señal ECG. Primero se importan las librerías necesarias: pandas para manejar archivos de Excel y estructuras de datos tipo DataFrame; matplotlib.pyplot para realizar gráficos; numpy para cálculos numéricos eficientes; scipy.signal para procesamiento de señales, y pywt para aplicar transformadas wavelet. Luego, se especifica la ruta del archivo Excel que contiene la señal ECG y se carga en un DataFrame usando pd.read_excel(). A partir de este archivo, se extraen dos columnas: la primera (df.iloc[:, 0].values) representa el tiempo en milisegundos o segundos, y la segunda (df.iloc[:, 1].values) contiene la señal cruda del ECG, es decir, los valores eléctricos medidos desde el corazón. Finalmente, se define la frecuencia de muestreo (fs = 1000), lo que indica que la señal fue registrada a mil muestras por segundo. Esto será esencial más adelante para convertir índices de muestras en tiempo real, calcular frecuencias y diseñar filtros:
 
 ```python  
