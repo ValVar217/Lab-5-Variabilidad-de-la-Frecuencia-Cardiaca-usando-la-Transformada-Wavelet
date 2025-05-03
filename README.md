@@ -4,8 +4,13 @@
 # INTRODUCCIÓN 
 Mediante el desarrollo del presente informe, se presenta la realización de la práctica de laboratorio enfocada en el análisis de la variación del ritmo cardíaco (HRV), con el objetivo de comprender cómo responde el sistema nervioso autónomo ante diferentes estímulos fisiológicos. Durante la práctica, se utilizó el software Python junto con sensores de pulso para registrar la señal cardíaca en distintas condiciones como: en reposo, durante una respiración controlada, ejecutando la maniobra de Valsalva y en el periodo de recuperación después del estres. A partir de estas señales se analizaron los intervalos entre latidos consecutivos, conocidos como intervalos R-R, que permiten observar la variabilidad cardíaca. Este parámetro es fundamental para evaluar el equilibrio entre las ramas simpática y parasimpática del sistema nervioso, ya que una mayor variabilidad indica una buena adaptación del organismo, mientras que una baja variabilidad puede estar relacionada con estrés o disfunción autonómica. El propósito de este laboratorio es desarrollar habilidades en la adquisición y análisis de señales biológicas, interpretando la HRV como una herramienta útil para estudiar la actividad del sistema nervioso en tiempo real bajo diversas condiciones fisiológicas.
 
+![Diagrama de Flujo](https://github.com/user-attachments/assets/f439cc32-6c88-4985-9688-d35bbe3017fe)    
+  |*Fig 1 : Diagrama de Flujo - Procedimiento de elaboracion de la guia de laboratorio.*| 
+
+
 <h1 align="center"> 📄 GUIA DE USUARIO 📄 </h1>   
-## ✔️ANALISIS Y RESULTADOS        
+
+## ✔️ANALISIS Y RESULTADOS           
 En esta primera parte del código se realiza la carga e inicialización de los datos de la señal ECG. Primero se importan las librerías necesarias: pandas para manejar archivos de Excel y estructuras de datos tipo DataFrame; matplotlib.pyplot para realizar gráficos; numpy para cálculos numéricos eficientes; scipy.signal para procesamiento de señales, y pywt para aplicar transformadas wavelet. Luego, se especifica la ruta del archivo Excel que contiene la señal ECG y se carga en un DataFrame usando pd.read_excel(). A partir de este archivo, se extraen dos columnas: la primera (df.iloc[:, 0].values) representa el tiempo en milisegundos o segundos, y la segunda (df.iloc[:, 1].values) contiene la señal cruda del ECG, es decir, los valores eléctricos medidos desde el corazón. Finalmente, se define la frecuencia de muestreo (fs = 1000), lo que indica que la señal fue registrada a mil muestras por segundo. Esto será esencial más adelante para convertir índices de muestras en tiempo real, calcular frecuencias y diseñar filtros:
 
 ```python  
@@ -31,7 +36,7 @@ Primero se diseña un filtro pasa banda Butterworth de cuarto orden para dejar p
 - Frecuencias menores pueden contener ruido de movimientos (muy lento), y mayores a 35 Hz pueden incluir interferencias de alta frecuencia o del ambiente.
 
 ![WhatsApp Image 2025-05-02 at 11 36 18 PM](https://github.com/user-attachments/assets/8335b9b5-ad89-410a-8bf9-163b389ec603)    
-  |*Fig # : Diseño del filtro   IIR.*| 
+  |*Fig 2 : Diseño del filtro   IIR.*| 
 
 
 Y bueno, para implementar el filtro, se calcula la frecuencia de Nyquist (nyq), que es la mitad de la frecuencia de muestreo (fs/2). Luego, se normalizan las frecuencias de corte dividiéndolas entre la frecuencia de Nyquist (low, high). Con estos valores se genera el filtro utilizando signal.butter(), que devuelve los coeficientes del filtro (b, a). Finalmente, se aplica el filtro a la señal ECG cruda con signal.filtfilt(), que realiza el filtrado hacia adelante y hacia atrás para evitar desfases (distorsión en el tiempo).  
@@ -165,8 +170,9 @@ if len(rr_intervals) > 0:
 Por consiguiente, observamos el desarrollo de:  
 Se realiza un análisis espectral de la variabilidad de la frecuencia cardíaca (HRV) en el dominio tiempo-frecuencia mediante la Transformada Wavelet Continua (CWT).   Evaluar cómo varía la energía (amplitud) en distintas bandas de frecuencia del ritmo cardíaco a lo largo del tiempo. Esto es útil para poder identificar la actividad del sistema nervioso simpático y parasimpático y tambien, poder analizar la HRV en condiciones de no estacionariedad, algo en lo que las wavelets sobresalen frente al análisis de Fourier que hemos trabajado anteriormente.  
 Y teniendo en cuenta que se asume una frecuencia de muestreo constante de 1 Hz sobre la serie de intervalos R-R, lo cual es una simplificación válida si los intervalos están más o menos espacioados significativamente.   
-Todo esto, mostrando un espectrograma con amplitud de cada frecuencia en cada instante de tiempo.  
+Todo esto, mostrando un espectrograma con amplitud de cada frecuencia en cada instante de tiempo. 
 
+Es importante aclarar que este espectrograma con CWT es una herramienta para poder observar cómo varía la HRV en el tiempo con mucho más detalle que el análisis de frecuencia clásico, a parte es útil en estudios médicos, de estrés o de calidad del sueño.    
 
 ```python  
     # ----------------------------
@@ -192,10 +198,34 @@ Todo esto, mostrando un espectrograma con amplitud de cada frecuencia en cada in
     plt.tight_layout()
     plt.show()
 ```
-
+Y para la ultima parte de nuestro codigo, se} realizo el análisis espectral de la variabilidad de la frecuencia cardíaca (HRV) usando la transformada wavelet continua (CWT), enfocándose específicamente en dos bandas fisiológicas importantes: la banda de baja frecuencia (LF: 0.04–0.15 Hz) y la de alta frecuencia (HF: 0.15–0.4 Hz). Se crean máscaras lógicas (lf_mask y hf_mask) para seleccionar los coeficientes de CWT que caen dentro de esas bandas, y luego se calcula la potencia promedio de cada banda como el valor cuadrático medio de los coeficientes en esas frecuencias. Finalmente, se imprime la potencia de ambas bandas y se calcula el índice LF/HF, que es un indicador clásico del balance entre actividad simpática y parasimpática en el sistema nervioso autónomo. También se imprimen los intervalos R-R para referencia adicional del análisis temporal.
 
 ```python  
+    # Análisis en la banda de baja frecuencia (LF) y alta frecuencia (HF)
+    lf_mask = (freqs >= low_freq) & (freqs <= 0.15)
+    hf_mask = (freqs > 0.15) & (freqs <= high_freq)
 
+    lf_power = np.mean(np.abs(cwtmatr[lf_mask, :])**2)
+    hf_power = np.mean(np.abs(cwtmatr[hf_mask, :])**2)
+
+    print("\n--- Análisis de Frecuencias de HRV (Estimación con CWT) ---")
+    print(f"Potencia en la Banda de Baja Frecuencia (LF: 0.04 - 0.15 Hz): {lf_power:.4f}")
+    print(f"Potencia en la Banda de Alta Frecuencia (HF: 0.15 - 0.4 Hz): {hf_power:.4f}")
+    if hf_power > 0:
+        lf_hf_ratio = lf_power / hf_power
+        print(f"Ratio LF/HF: {lf_hf_ratio:.2f}")
+    else:
+        print("No se pudo calcular el ratio LF/HF (HF power es cero).")
+
+else:
+    print("\nNo se encontraron suficientes picos R para realizar el análisis espectral.")
+
+# ----------------------------
+# 10. Mostrar intervalos R-R en consola
+# ----------------------------
+print("\nIntervalos R-R (s):", rr_intervals)
 ```
-![WhatsApp Image 2025-05-02 at 11 35 53 PM](https://github.com/user-attachments/assets/d7d1308c-63d0-4233-a0da-9a86702c1265)  
+
+## CONCLUSIONES: ⚙️    
+ 
 
