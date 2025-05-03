@@ -111,7 +111,7 @@ Aquí se utiliza la función signal.find_peaks() de SciPy para identificar los p
 - El parámetro distance se fija en int(0.6 * fs), pues es un intervalo mínimo de 600 milisegundos (0.6 segundos) entre picos, y en parte es equivalente a una frecuencia cardíaca máxima de 100 latidos por minuto, pero ¿Que cual es su funcion? pues, este valor actúa como filtro para evitar detectar falsos positivos (picos que no son R reales).  
 - El parámetro height=np.max(smoothed_ecg)*0.35 indica que solo se considerarán picos con una altura mínima del 35% del valor máximo de la señal suavizaday esto se hace con el finde que esto descarta pequeños picos de ruido o de otras ondas (como T o P) que no corresponden al complejo QRS; y como resultado es un array peaks que contiene los índices de los picos R detectados en la señal temporal.
 
-▪️**5. Cálculo de intervalos R-R**
+▪️**5. Cálculo de intervalos R-R**  
 Una vez localizados los picos R, se calculan los intervalos R-R como la diferencia entre los tiempos de cada pico consecutivo, usando np.diff(t[peaks]). Estos intervalos representan el tiempo entre un latido y el siguiente, medidos en segundos. Tambien, se usa np.diff() para calcular la diferencia entre elementos consecutivos del array t[peaks], que contiene los tiempos asociados a cada pico R. Además, se incluye una verificación con if len(peaks) > 1 para asegurarse de que al menos haya dos picos y así poder calcular al menos un intervalo. Si no se encuentran suficientes picos, se muestra un mensaje y se asigna un array vacío a rr_intervals.
 
 ```python  
@@ -161,10 +161,10 @@ plt.grid(True)
 plt.tight_layout()
 plt.show()
 ```
-![Picos R en ECG](https://github.com/user-attachments/assets/dcda920f-1b8d-420d-bcc5-b82681eab18e)  
+![Picos R en ECG](https://github.com/user-attachments/assets/dcda920f-1b8d-420d-bcc5-b82681eab18e)    
   |*Fig 5 : .*|   
-La señal obtenida tras el filtrado muestra una forma de onda de ECG mucho más limpia y definida, en la que se distinguen claramente los complejos QRS como picos prominentes y regulares a lo largo del tiempo; sobre esta señal, los puntos rojos indican los picos R detectados, los cuales se alinean con los máximos de cada complejo, evidenciando un ritmo cardíaco estable y una detección exitosa de cada latido. (Identificamos los picos R y calculamos los intervalos R-R  usando la función predefinida  "scipy.signal.find_peaks")  
-![Intervalos RR](https://github.com/user-attachments/assets/7c0bd066-efe8-4b81-81e7-fa13aa9d21e4)  
+La señal obtenida tras el filtrado muestra una forma de onda de ECG mucho más limpia y definida, en la que se distinguen claramente los complejos QRS como picos prominentes y regulares a lo largo del tiempo; sobre esta señal, los puntos rojos indican los picos R detectados, los cuales se alinean con los máximos de cada complejo, evidenciando un ritmo cardíaco estable y una detección exitosa de cada latido. (Identificamos los picos R y calculamos los intervalos R-R  usando la función predefinida  "scipy.signal.find_peaks")    
+![Intervalos RR](https://github.com/user-attachments/assets/7c0bd066-efe8-4b81-81e7-fa13aa9d21e4)    
 _________________________________   
 Bien, el siguiente segmento del código se dedica al análisis de los intervalos R-R en el dominio del tiempo, es decir, al estudio de la variabilidad del ritmo cardíaco (HRV) a partir de los tiempos entre latidos consecutivos, extraídos de los picos R previamente detectados.    
 Este análisis en el dominio del tiempo es esencial en el estudio del ritmo cardíaco porque permite:  
@@ -203,10 +203,10 @@ if len(rr_intervals) > 0:
     plt.tight_layout()
     plt.show()
 ```
-![WhatsApp Image 2025-05-01 at 6 08 58 PM](https://github.com/user-attachments/assets/a7d95c33-c197-48bd-b996-834efbf55fd5)
-  |*Fig 6 : Grafico creado a partir de los intervalos hallados entre los R-R (HRV).*|    
-![WhatsApp Image 2025-05-01 at 6 10 04 PM](https://github.com/user-attachments/assets/f313668e-256e-476e-bffe-37817ad5616c)
- |*Fig 7 : Parámetros básicos de la HRV en el dominio del tiempo.*|     
+![WhatsApp Image 2025-05-01 at 6 08 58 PM](https://github.com/user-attachments/assets/a7d95c33-c197-48bd-b996-834efbf55fd5)  
+  |*Fig 6 : Grafico creado a partir de los intervalos hallados entre los R-R (HRV).*|     
+![WhatsApp Image 2025-05-01 at 6 10 04 PM](https://github.com/user-attachments/assets/f313668e-256e-476e-bffe-37817ad5616c)  
+ |*Fig 7 : Parámetros básicos de la HRV en el dominio del tiempo.*|       
 _________________________________    
 ## e. Aplicación de transformada Wavelet:       
 Se realiza un análisis espectral de la variabilidad de la frecuencia cardíaca (HRV) en el dominio tiempo-frecuencia mediante la Transformada Wavelet Continua (CWT).   Evaluar cómo varía la energía (amplitud) en distintas bandas de frecuencia del ritmo cardíaco a lo largo del tiempo. Esto es útil para poder identificar la actividad del sistema nervioso simpático y parasimpático y tambien, poder analizar la HRV en condiciones de no estacionariedad, algo en lo que las wavelets sobresalen frente al análisis de Fourier que hemos trabajado anteriormente.  
@@ -239,6 +239,9 @@ Es importante aclarar que este espectrograma con CWT es una herramienta para pod
     plt.tight_layout()
     plt.show()
 ```
+![Transf-Wavelet](https://github.com/user-attachments/assets/9d207344-0e3f-4242-9d76-36358b2f7e0d) 
+ |*Fig 8 : Resultados --> Transformada de Wavelet.*|         
+_________________________________        
 Y para la ultima parte de nuestro codigo, se realizo el análisis espectral de la variabilidad de la frecuencia cardíaca (HRV) usando la transformada wavelet continua (CWT), enfocándose específicamente en dos bandas fisiológicas importantes: la banda de baja frecuencia (LF: 0.04–0.15 Hz) y la de alta frecuencia (HF: 0.15–0.4 Hz). Se crean máscaras lógicas (lf_mask y hf_mask) para seleccionar los coeficientes de CWT que caen dentro de esas bandas, y luego se calcula la potencia promedio de cada banda como el valor cuadrático medio de los coeficientes en esas frecuencias. Finalmente, se imprime la potencia de ambas bandas y se calcula el índice LF/HF, que es un indicador clásico del balance entre actividad simpática y parasimpática en el sistema nervioso autónomo. También se imprimen los intervalos R-R para referencia adicional del análisis temporal.
 
 ```python  
@@ -266,6 +269,9 @@ else:
 # ----------------------------
 print("\nIntervalos R-R (s):", rr_intervals)
 ```
+![WhatsApp Image 2025-05-02 at 11 45 34 AM](https://github.com/user-attachments/assets/bf2e2da0-e3d9-45ef-b141-e20d239368a5)
+ |*Fig 9 : Análisis de Frecuencias de HRV (Estimación con CWT).*|           
+_________________________________    
 
 ## CONCLUSIONES: ⚙️    
  
