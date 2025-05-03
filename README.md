@@ -16,9 +16,21 @@ Mediante el desarrollo del presente informe, se presenta la realización de la p
 **🧠 Sistema Nervioso Autónomo (SNA):** El SNA regula funciones automáticas del cuerpo, como la frecuencia cardíaca, la respiración y la digestión. Se divide en:  
 - Simpático: activa el cuerpo ante el estrés (acelera el corazón).  
 - Parasimpático: promueve el descanso y la recuperación (ralentiza el corazón).  
-- El equilibrio entre ambos se refleja en la variabilidad de la frecuencia cardíaca.  
+- El equilibrio entre ambos se refleja en la variabilidad de la frecuencia cardíaca.
 
-En esta primera parte del código se realiza la carga e inicialización de los datos de la señal ECG. Primero se importan las librerías necesarias: pandas para manejar archivos de Excel y estructuras de datos tipo DataFrame; matplotlib.pyplot para realizar gráficos; numpy para cálculos numéricos eficientes; scipy.signal para procesamiento de señales, y pywt para aplicar transformadas wavelet. Luego, se especifica la ruta del archivo Excel que contiene la señal ECG y se carga en un DataFrame usando pd.read_excel(). A partir de este archivo, se extraen dos columnas: la primera (df.iloc[:, 0].values) representa el tiempo en milisegundos o segundos, y la segunda (df.iloc[:, 1].values) contiene la señal cruda del ECG, es decir, los valores eléctricos medidos desde el corazón. Finalmente, se define la frecuencia de muestreo (fs = 1000), lo que indica que la señal fue registrada a mil muestras por segundo. Esto será esencial más adelante para convertir índices de muestras en tiempo real, calcular frecuencias y diseñar filtros:
+**❤️ Variabilidad de la Frecuencia Cardíaca (HRV)**  
+La HRV es la variación en el tiempo entre latidos consecutivos (intervalos R-R en un ECG).
+- Alta HRV: indica buena adaptación del sistema cardiovascular y predominio parasimpático.
+- Baja HRV: puede reflejar estrés, fatiga o riesgo cardiovascular.
+Se puede analizar en el dominio del tiempo (estadísticas simples) o en el dominio de la frecuencia (análisis espectral).
+
+**🌊 Transformada Wavelet**  
+Es una herramienta que permite analizar señales no estacionarias (como el ECG) descomponiéndolas en tiempo y frecuencia simultáneamente. A diferencia de la transformada de Fourier, la wavelet puede detectar cambios transitorios, lo que la hace ideal para estudiar cómo varían las frecuencias (LF y HF) de la HRV a lo largo del tiempo.
+_________________________________    
+## b. Adquisición de la señal ECG: 
+Para la obtención de la señal ECG se utilizó un sistema de adquisición de datos DAQ6002, conectado a tres electrodos de superficie colocados según la configuración estándar de derivación Einthoven (brazos derecho, izquierdo y pierna derecha como referencia o tierra). La señal fue registrada durante 5 minutos en condiciones de reposo, con el sujeto sentado de manera relajada y respirando de forma natural, en un ambiente controlado para minimizar interferencias eléctricas. La señal se muestreó a una frecuencia de [1000 Hz], lo cual permite una adecuada resolución temporal para el análisis de los complejos QRS. Los datos fueron almacenados y posteriormente procesados en Python para el análisis de la variabilidad de la frecuencia cardíaca (HRV).  
+   
+--> En esta primera parte del código se realiza la carga e inicialización de los datos de la señal ECG. Primero se importan las librerías necesarias: pandas para manejar archivos de Excel y estructuras de datos tipo DataFrame; matplotlib.pyplot para realizar gráficos; numpy para cálculos numéricos eficientes; scipy.signal para procesamiento de señales, y pywt para aplicar transformadas wavelet. Luego, se especifica la ruta del archivo Excel que contiene la señal ECG y se carga en un DataFrame usando pd.read_excel(). A partir de este archivo, se extraen dos columnas: la primera (df.iloc[:, 0].values) representa el tiempo en milisegundos o segundos, y la segunda (df.iloc[:, 1].values) contiene la señal cruda del ECG, es decir, los valores eléctricos medidos desde el corazón. Finalmente, se define la frecuencia de muestreo (fs = 1000), lo que indica que la señal fue registrada a mil muestras por segundo. Esto será esencial más adelante para convertir índices de muestras en tiempo real, calcular frecuencias y diseñar filtros:
 
 ```python  
 import pandas as pd
@@ -35,8 +47,14 @@ t = df.iloc[:, 0].values
 ecg_signal_raw = df.iloc[:, 1].values
 fs = 1000  # Hz
 ```
+![Señal original](https://github.com/user-attachments/assets/6b3ff343-5bc2-4300-b4f3-df3fed83c966)  
+  |*Fig 2 : Señal original.*|       
+👆 **Analisis** 👆  
+La señal mostrada en la imagen corresponde a la ECG que al momento se encuentra sin procesar, tal como fue adquirida directamente del sistema de adquisición (DAQ6002). En ella se puede observar un alto nivel de ruido, con fluctuaciones rápidas y amplitudes que oscilan aproximadamente entre 1 y 5 mV, lo cual no es típico de una señal ECG fisiológica normal. Esta distorsión puede deberse a interferencias eléctricas, artefactos por movimiento o actividad muscular, lo que impide que podamos identificar con claridad los componentes característicos del ciclo cardíaco en este caso, como los complejos QRS. Esta visualización inicial requiere la necesidad de aplicar técnicas de preprocesamiento, como el filtrado pasabanda (Butterworth) y la filtración por mediana, que serán implementadas en las etapas siguientes del código para limpiar la señal y permitir una detección precisa de los picos R.
+_________________________________    
 Ahora bien, En esta siguiente sección del código se realiza el preprocesamiento de la señal ECG, lo cual es esencial para eliminar ruidos y preparar la señal para un análisis más preciso.
 
+## c. Pre - procesamiento de la señal:      
 ▪️ **1. Filtro IIR Butterworth**  
 Primero se diseña un filtro pasa banda Butterworth de cuarto orden para dejar pasar únicamente las frecuencias relevantes del ECG, que suelen estar entre 0.5 Hz y 35 Hz. Estos valores se eligen porque:
 - El componente útil del ECG, como las ondas P, QRS y T, se encuentra en ese rango.  
@@ -45,8 +63,7 @@ Primero se diseña un filtro pasa banda Butterworth de cuarto orden para dejar p
 ![WhatsApp Image 2025-05-02 at 11 36 18 PM](https://github.com/user-attachments/assets/8335b9b5-ad89-410a-8bf9-163b389ec603)    
   |*Fig 2 : Diseño del filtro   IIR.*| 
 
-
-Y bueno, para implementar el filtro, se calcula la frecuencia de Nyquist (nyq), que es la mitad de la frecuencia de muestreo (fs/2). Luego, se normalizan las frecuencias de corte dividiéndolas entre la frecuencia de Nyquist (low, high). Con estos valores se genera el filtro utilizando signal.butter(), que devuelve los coeficientes del filtro (b, a). Finalmente, se aplica el filtro a la señal ECG cruda con signal.filtfilt(), que realiza el filtrado hacia adelante y hacia atrás para evitar desfases (distorsión en el tiempo).  
+Y bueno, para implementar el filtro, se calcula la frecuencia de Nyquist (nyq), que es la mitad de la frecuencia de muestreo (fs/2). Este es utilizado para limpiar señales ECG eliminando componentes de baja frecuencia (ruido por movimiento) y de alta frecuencia (ruido muscular o eléctrico). Se plantea el filtro con frecuencia de muestreo de 1000 Hz, corte inferior en 0.5 Hz y superior en 35 Hz, a su vez, se realiza una conversión de frecuencias normalizadas a rad/muestra, seguida del pre-warping para transformar las frecuencias digitales en frecuencias analógicas antes de aplicar la transformación bilineal. Tambien, se calcula el orden del filtro usando la fórmula clásica de Butterworth, considerando las atenuaciones deseadas (20 dB fuera de banda y 3 dB dentro), lo que lleva a un orden n ≈ 4. Finalmente, se incluye la transformación a la frecuencia central Ωc, el polinomio del denominador normalizado del filtro analógico y la función de transferencia digital resultante. Esta última se convierte en una ecuación en diferencias lista para ser implementada, permitiendo el filtrado digital en tiempo discreto sobre la señal original mostrada previamente.
 
 ▪️ **2. Filtro mediana**  
 Después, se aplica un filtro de mediana a la señal ya filtrada, teniendo en cuenta que este tipo de filtro es útil para eliminar picos abruptos o artefactos que no representan actividad cardíaca real, como pequeñas interferencias y funciona reemplazando cada valor por la mediana de sus "vecinos" (en este caso, de una ventana de 5 muestras), lo que ayuda a suavizar la señal sin deformar las formas de onda importantes del ECG; Pues esto termina de limpiar la señal para facilitar una detección precisa de los picos R en pasos posteriores.   
@@ -108,7 +125,8 @@ else:
     rr_intervals = np.array([])
     print("No se encontraron suficientes picos R para calcular los intervalos R-R.")
 ```
-Luego tenemos lo siguiente:
+_________________________________    
+## d. Análisis de la HRV en el dominio del tiempo:    
 ▪️ **6. Crear señal con información de picos R**    
 Para la siguiente parte, se construye un nuevo arreglo llamado r_peak_signal, que tiene la misma longitud que la señal suavizada pero está relleno con ceros. Luego, en los índices correspondientes a los picos R detectados, se colocan los valores reales de la señal. Pues, este paso permite crear una señal que solo contiene los picos R, facilitando su análisis individual o la visualización superpuesta. No altera la señal original, sino que crea una representación enmascarada donde los únicos puntos no nulos son los picos detectados. 
 
@@ -174,7 +192,8 @@ if len(rr_intervals) > 0:
     plt.tight_layout()
     plt.show()
 ```
-Por consiguiente, observamos el desarrollo de:  
+_________________________________    
+## e. Aplicación de transformada Wavelet:       
 Se realiza un análisis espectral de la variabilidad de la frecuencia cardíaca (HRV) en el dominio tiempo-frecuencia mediante la Transformada Wavelet Continua (CWT).   Evaluar cómo varía la energía (amplitud) en distintas bandas de frecuencia del ritmo cardíaco a lo largo del tiempo. Esto es útil para poder identificar la actividad del sistema nervioso simpático y parasimpático y tambien, poder analizar la HRV en condiciones de no estacionariedad, algo en lo que las wavelets sobresalen frente al análisis de Fourier que hemos trabajado anteriormente.  
 Y teniendo en cuenta que se asume una frecuencia de muestreo constante de 1 Hz sobre la serie de intervalos R-R, lo cual es una simplificación válida si los intervalos están más o menos espacioados significativamente.   
 Todo esto, mostrando un espectrograma con amplitud de cada frecuencia en cada instante de tiempo. 
@@ -205,7 +224,7 @@ Es importante aclarar que este espectrograma con CWT es una herramienta para pod
     plt.tight_layout()
     plt.show()
 ```
-Y para la ultima parte de nuestro codigo, se} realizo el análisis espectral de la variabilidad de la frecuencia cardíaca (HRV) usando la transformada wavelet continua (CWT), enfocándose específicamente en dos bandas fisiológicas importantes: la banda de baja frecuencia (LF: 0.04–0.15 Hz) y la de alta frecuencia (HF: 0.15–0.4 Hz). Se crean máscaras lógicas (lf_mask y hf_mask) para seleccionar los coeficientes de CWT que caen dentro de esas bandas, y luego se calcula la potencia promedio de cada banda como el valor cuadrático medio de los coeficientes en esas frecuencias. Finalmente, se imprime la potencia de ambas bandas y se calcula el índice LF/HF, que es un indicador clásico del balance entre actividad simpática y parasimpática en el sistema nervioso autónomo. También se imprimen los intervalos R-R para referencia adicional del análisis temporal.
+Y para la ultima parte de nuestro codigo, se realizo el análisis espectral de la variabilidad de la frecuencia cardíaca (HRV) usando la transformada wavelet continua (CWT), enfocándose específicamente en dos bandas fisiológicas importantes: la banda de baja frecuencia (LF: 0.04–0.15 Hz) y la de alta frecuencia (HF: 0.15–0.4 Hz). Se crean máscaras lógicas (lf_mask y hf_mask) para seleccionar los coeficientes de CWT que caen dentro de esas bandas, y luego se calcula la potencia promedio de cada banda como el valor cuadrático medio de los coeficientes en esas frecuencias. Finalmente, se imprime la potencia de ambas bandas y se calcula el índice LF/HF, que es un indicador clásico del balance entre actividad simpática y parasimpática en el sistema nervioso autónomo. También se imprimen los intervalos R-R para referencia adicional del análisis temporal.
 
 ```python  
     # Análisis en la banda de baja frecuencia (LF) y alta frecuencia (HF)
