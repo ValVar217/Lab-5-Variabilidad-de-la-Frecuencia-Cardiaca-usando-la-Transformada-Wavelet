@@ -59,9 +59,10 @@ Ahora bien, En esta siguiente sección del código se realiza el preprocesamient
 Primero se diseña un filtro pasa banda Butterworth de cuarto orden para dejar pasar únicamente las frecuencias relevantes del ECG, que suelen estar entre 0.5 Hz y 35 Hz. Estos valores se eligen porque:
 - El componente útil del ECG, como las ondas P, QRS y T, se encuentra en ese rango.  
 - Frecuencias menores pueden contener ruido de movimientos (muy lento), y mayores a 35 Hz pueden incluir interferencias de alta frecuencia o del ambiente.
+--> A demas, usando la función predefinida "scipy.signal.bilinear" para obtener la transformación bilineal de una función de transferencia analógica, se obtuvo los coeficientes de entrada (b = [ 1.1951712e-06, -1.1923701e-06, -1.1923701e-06,  1.1951712e-06 ]) y los coeficientes de salida (a = [ 1.0, -2.98538391, 2.97112673, -0.98574185 ]) quedando así la ecuación en diferencia de la siguiente manera:  
 
 ![WhatsApp Image 2025-05-02 at 11 36 18 PM](https://github.com/user-attachments/assets/8335b9b5-ad89-410a-8bf9-163b389ec603)    
-  |*Fig 2 : Diseño del filtro   IIR.*| 
+  |*Fig 3 : Diseño del filtro   IIR.*| 
 
 Y bueno, para implementar el filtro, se calcula la frecuencia de Nyquist (nyq), que es la mitad de la frecuencia de muestreo (fs/2). Este es utilizado para limpiar señales ECG eliminando componentes de baja frecuencia (ruido por movimiento) y de alta frecuencia (ruido muscular o eléctrico). Se plantea el filtro con frecuencia de muestreo de 1000 Hz, corte inferior en 0.5 Hz y superior en 35 Hz, a su vez, se realiza una conversión de frecuencias normalizadas a rad/muestra, seguida del pre-warping para transformar las frecuencias digitales en frecuencias analógicas antes de aplicar la transformación bilineal. Tambien, se calcula el orden del filtro usando la fórmula clásica de Butterworth, considerando las atenuaciones deseadas (20 dB fuera de banda y 3 dB dentro), lo que lleva a un orden n ≈ 4. Finalmente, se incluye la transformación a la frecuencia central Ωc, el polinomio del denominador normalizado del filtro analógico y la función de transferencia digital resultante. Esta última se convierte en una ecuación en diferencias lista para ser implementada, permitiendo el filtrado digital en tiempo discreto sobre la señal original mostrada previamente.
 
@@ -86,7 +87,12 @@ filtered_ecg = signal.filtfilt(b, a, ecg_signal_raw)
 # 2. Filtro mediana
 # ----------------------------
 median_filtered_ecg = signal.medfilt(filtered_ecg, kernel_size=5)
-```  
+```
+![Señal filtrada](https://github.com/user-attachments/assets/e8bddc2a-eb36-4fa9-a3a3-6e24b0ad4c03)    
+  |*Fig 4 : Señal filtrada.*|     
+  👆 **Analisis** 👆  
+Esta gráfica muestra el resultado de aplicar el filtro IIR Butterworth diseñado previamente a la señal original ECG. A diferencia del gráfico original, donde el ruido era muy grande y saturaba el rango de ±5 mV, aquí la señal está claramente delimitada en un rango más estrecho, siendo más limpia y menos contaminada por frecuencias fuera del rango fisiológico del ECG. Tambien hay que tener en cuen ta que el filtro ha atenuado de forma efectiva las componentes de muy baja frecuencia (movimiento de línea base) y de alta frecuencia (ruido muscular y eléctrico), conservando las componentes principales del ECG, como los complejos QRS, por lo que podemos decir que, la morfología ahora es más identificable y apta para análisis clínico o procesamiento automático. 
+_________________________________      
 Posterior a lo anterior, se realiza un suavizado adicional de la señal ECG utilizando un filtro de promedio móvil, con el objetivo de reducir pequeñas oscilaciones residuales y dejar la señal más limpia para la detección de eventos cardíacos importantes.      
 
 Primero, se define el tamaño de la ventana de suavizado como 0.03 * fs, es decir, 30 milisegundos de duración. Como la señal está muestreada a 1000 Hz (fs = 1000), eso equivale a 30 muestras. Luego, se aplica el suavizado con np.convolve(), una operación que recorre la señal y calcula el promedio de los valores dentro de esa ventana. Aquí se usa np.ones(window_size)/window_size para crear un filtro promedio, lo que significa que todos los valores dentro de la ventana tienen el mismo "peso" y por ultimo, La opción mode='same' asegura que la salida tenga el mismo tamaño que la señal original. Este suavizado actúa como un “pulido” final para la señal ya filtrada, de esta manera eliminando pequeñas variaciones que podrían confundir al algoritmo de detección de picos R (latidos) más adelante.     
@@ -97,7 +103,7 @@ Primero, se define el tamaño de la ventana de suavizado como 0.03 * fs, es deci
 # ----------------------------
 window_size = int(0.03 * fs)  # 30 ms
 smoothed_ecg = np.convolve(median_filtered_ecg, np.ones(window_size)/window_size, mode='same')
-```
+```  
 Siguiendo con el codigo, tenemos:   
 ▪️ **Detección de picos R**   
 Aquí se utiliza la función signal.find_peaks() de SciPy para identificar los picos prominentes de la señal suavizada, que corresponden a los picos R del ECG (los eventos más sobresalientes en cada ciclo cardíaco).
@@ -155,6 +161,11 @@ plt.grid(True)
 plt.tight_layout()
 plt.show()
 ```
+![Picos R en ECG](https://github.com/user-attachments/assets/dcda920f-1b8d-420d-bcc5-b82681eab18e)  
+  |*Fig 5 : .*|   
+La señal obtenida tras el filtrado muestra una forma de onda de ECG mucho más limpia y definida, en la que se distinguen claramente los complejos QRS como picos prominentes y regulares a lo largo del tiempo; sobre esta señal, los puntos rojos indican los picos R detectados, los cuales se alinean con los máximos de cada complejo, evidenciando un ritmo cardíaco estable y una detección exitosa de cada latido. (Identificamos los picos R y calculamos los intervalos R-R  usando la función predefinida  "scipy.signal.find_peaks")  
+![Intervalos RR](https://github.com/user-attachments/assets/7c0bd066-efe8-4b81-81e7-fa13aa9d21e4)  
+_________________________________   
 Bien, el siguiente segmento del código se dedica al análisis de los intervalos R-R en el dominio del tiempo, es decir, al estudio de la variabilidad del ritmo cardíaco (HRV) a partir de los tiempos entre latidos consecutivos, extraídos de los picos R previamente detectados.    
 Este análisis en el dominio del tiempo es esencial en el estudio del ritmo cardíaco porque permite:  
 - Se grafica cada intervalo R-R en función del tiempo, lo cual permite observar cómo varían los latidos con el tiempo.
@@ -192,6 +203,10 @@ if len(rr_intervals) > 0:
     plt.tight_layout()
     plt.show()
 ```
+![WhatsApp Image 2025-05-01 at 6 08 58 PM](https://github.com/user-attachments/assets/a7d95c33-c197-48bd-b996-834efbf55fd5)
+  |*Fig 6 : Grafico creado a partir de los intervalos hallados entre los R-R (HRV).*|    
+![WhatsApp Image 2025-05-01 at 6 10 04 PM](https://github.com/user-attachments/assets/f313668e-256e-476e-bffe-37817ad5616c)
+ |*Fig 7 : Parámetros básicos de la HRV en el dominio del tiempo.*|     
 _________________________________    
 ## e. Aplicación de transformada Wavelet:       
 Se realiza un análisis espectral de la variabilidad de la frecuencia cardíaca (HRV) en el dominio tiempo-frecuencia mediante la Transformada Wavelet Continua (CWT).   Evaluar cómo varía la energía (amplitud) en distintas bandas de frecuencia del ritmo cardíaco a lo largo del tiempo. Esto es útil para poder identificar la actividad del sistema nervioso simpático y parasimpático y tambien, poder analizar la HRV en condiciones de no estacionariedad, algo en lo que las wavelets sobresalen frente al análisis de Fourier que hemos trabajado anteriormente.  
