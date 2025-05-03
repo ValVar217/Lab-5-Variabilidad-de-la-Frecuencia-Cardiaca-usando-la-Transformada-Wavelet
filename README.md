@@ -162,7 +162,7 @@ plt.tight_layout()
 plt.show()
 ```
 ![Picos R en ECG](https://github.com/user-attachments/assets/dcda920f-1b8d-420d-bcc5-b82681eab18e)    
-  |*Fig 5 : .*|   
+  |*Fig 5 : Señal filtrada teniendo en cuenta cada Intervalo R-R.*|   
 La señal obtenida tras el filtrado muestra una forma de onda de ECG mucho más limpia y definida, en la que se distinguen claramente los complejos QRS como picos prominentes y regulares a lo largo del tiempo; sobre esta señal, los puntos rojos indican los picos R detectados, los cuales se alinean con los máximos de cada complejo, evidenciando un ritmo cardíaco estable y una detección exitosa de cada latido. (Identificamos los picos R y calculamos los intervalos R-R  usando la función predefinida  "scipy.signal.find_peaks")    
 ![Intervalos RR](https://github.com/user-attachments/assets/7c0bd066-efe8-4b81-81e7-fa13aa9d21e4)    
 _________________________________   
@@ -204,7 +204,10 @@ if len(rr_intervals) > 0:
     plt.show()
 ```
 ![WhatsApp Image 2025-05-01 at 6 08 58 PM](https://github.com/user-attachments/assets/a7d95c33-c197-48bd-b996-834efbf55fd5)  
-  |*Fig 6 : Grafico creado a partir de los intervalos hallados entre los R-R (HRV).*|     
+  |*Fig 6 : Grafico creado a partir de los intervalos hallados entre los R-R (HRV).*|    
+  👆 **Analisis** 👆   
+Esta imagen representa el "Análisis de los intervalos R-R en el dominio del tiempo", de los intervalos R-R tras la detección de los picos R. En este gráfico se representan los intervalos de tiempo entre latidos consecutivos en función del tiempo, utilizando una línea azul clara para mostrar cada intervalo R-R detectado, además de una línea discontinua roja que indica la media de estos intervalos. El valor promedio mostrado (1.743 segundos) se traduce en una frecuencia cardíaca promedio baja, de aproximadamente 34.42 bpm, lo cual podría deberse a un estado de reposo profundo, una señal con pocos picos válidos detectados o algún artefacto en la señal. La variabilidad observada entre los intervalos indica fluctuaciones notables en el ritmo cardíaco, lo que puede ser indicativo de una alta variabilidad de la frecuencia cardíaca (HRV), aunque también podría sugerir inconsistencias en la detección de picos dependiendo de la calidad de la señal original. Este tipo de análisis es clave para evaluar la actividad autonómica del corazón en el tiempo.     
+  
 ![WhatsApp Image 2025-05-01 at 6 10 04 PM](https://github.com/user-attachments/assets/f313668e-256e-476e-bffe-37817ad5616c)  
  |*Fig 7 : Parámetros básicos de la HRV en el dominio del tiempo.*|       
 _________________________________    
@@ -240,7 +243,13 @@ Es importante aclarar que este espectrograma con CWT es una herramienta para pod
     plt.show()
 ```
 ![Transf-Wavelet](https://github.com/user-attachments/assets/9d207344-0e3f-4242-9d76-36358b2f7e0d) 
- |*Fig 8 : Resultados --> Transformada de Wavelet.*|         
+ |*Fig 8 : Resultados --> Transformada de Wavelet.*|          
+  👆 **Analisis** 👆     
+ La imagen corresponde al análisis espectral de los intervalos R-R mediante la transformada wavelet continua (CWT), específicamente utilizando la wavelet de Morlet. Este gráfico, muestra un espectrograma en el que se observa la evolución temporal de la actividad en distintas bandas de frecuencia, permitiendo visualizar cómo varía la potencia de la señal de los intervalos R-R a lo largo del tiempo. 
+- En el eje horizontal se representa el tiempo en segundos, mientras que el eje vertical indica la frecuencia en hertz (Hz), con un límite superior de 0.5 Hz, abarcando así las bandas clásicas del análisis de la variabilidad de la frecuencia cardíaca (HRV): la banda de baja frecuencia (LF), entre 0.04 y 0.15 Hz, relacionada con la actividad simpática y parasimpática, y la banda de alta frecuencia (HF), entre 0.15 y 0.4 Hz, asociada principalmente con la modulación parasimpática.  
+
+Por otro lado, es importante tener en cuenta que la intensidad del color en el gráfico representa la amplitud o potencia de la señal en cada punto temporal y frecuencia. Luego, estan las zonas en tonos amarillos y verdes que indican mayor amplitud, mientras que los tonos azules y morados corresponden a menor actividad. Se destacan patrones periódicos con alta amplitud, especialmente en la banda cercana a los 0.4–0.45 Hz, lo que sugiere una fuerte modulación en la banda de alta frecuencia. Esta actividad sugiere un predominio del control parasimpático sobre la frecuencia cardíaca en ese intervalo de tiempo. La presencia de estos patrones repetitivos y definidos a lo largo del espectrograma refleja una regulación autonómica activa y sostenida del ritmo cardíaco, lo cual puede interpretarse como un signo de un sistema de control cardíaco dinámico y en funcionamiento.
+
 _________________________________        
 Y para la ultima parte de nuestro codigo, se realizo el análisis espectral de la variabilidad de la frecuencia cardíaca (HRV) usando la transformada wavelet continua (CWT), enfocándose específicamente en dos bandas fisiológicas importantes: la banda de baja frecuencia (LF: 0.04–0.15 Hz) y la de alta frecuencia (HF: 0.15–0.4 Hz). Se crean máscaras lógicas (lf_mask y hf_mask) para seleccionar los coeficientes de CWT que caen dentro de esas bandas, y luego se calcula la potencia promedio de cada banda como el valor cuadrático medio de los coeficientes en esas frecuencias. Finalmente, se imprime la potencia de ambas bandas y se calcula el índice LF/HF, que es un indicador clásico del balance entre actividad simpática y parasimpática en el sistema nervioso autónomo. También se imprimen los intervalos R-R para referencia adicional del análisis temporal.
 
@@ -260,7 +269,6 @@ Y para la ultima parte de nuestro codigo, se realizo el análisis espectral de l
         print(f"Ratio LF/HF: {lf_hf_ratio:.2f}")
     else:
         print("No se pudo calcular el ratio LF/HF (HF power es cero).")
-
 else:
     print("\nNo se encontraron suficientes picos R para realizar el análisis espectral.")
 
@@ -269,8 +277,9 @@ else:
 # ----------------------------
 print("\nIntervalos R-R (s):", rr_intervals)
 ```
-![WhatsApp Image 2025-05-02 at 11 45 34 AM](https://github.com/user-attachments/assets/bf2e2da0-e3d9-45ef-b141-e20d239368a5)
- |*Fig 9 : Análisis de Frecuencias de HRV (Estimación con CWT).*|           
+![WhatsApp Image 2025-05-02 at 11 45 34 AM](https://github.com/user-attachments/assets/bf2e2da0-e3d9-45ef-b141-e20d239368a5)  
+ |*Fig 9 : Análisis de Frecuencias de HRV (Estimación con CWT).*|        
+A partir del espectrograma de los intervalos R-R y el análisis de frecuencias de la variabilidad de la frecuencia cardíaca (HRV) usando la transformada wavelet, se puede decir lo siguiente: Aunque en el espectrograma se nota bastante actividad en la zona de alta frecuencia (HF), los valores calculados muestran que la potencia en la banda de baja frecuencia (LF) es un poco mayor (1.3930) que la de alta frecuencia (0.9205). Esto da un cociente LF/HF de 1.51. Ese valor indica que hay un leve predominio del sistema nervioso simpático (que activa el cuerpo), aunque también hay una buena participación del sistema parasimpático (que relaja el cuerpo). En resumen, el control del corazón está equilibrado, pero con una ligera inclinación hacia la activación.  
 _________________________________    
 
 ## CONCLUSIONES: ⚙️    
